@@ -1,0 +1,128 @@
+##
+##	I HELPED PROF'S factorial.asm code in this assignment
+
+#################################
+#				#
+#	text segment		#
+#				#
+#################################
+	.text		
+	.globl __start
+ __start:
+ 	jal	menu
+ 	
+ 	li	$v0,10		#exit option
+	syscall
+menu:
+	move	$s0, $ra
+	la	$a0, menuMsg		#print out the menu
+	li	$v0, 4
+	syscall
+	
+	li	$v0,5 
+	syscall
+	
+	blt	$v0, 1, errorMessage
+	beq	$v0, 1, recursiveMultiplication
+	beq	$v0, 2, recursiveSummation
+	bgt	$v0, 2, errorMessage
+	move	$ra, $s0
+errorMessage:
+	la	$a0, error
+	li	$v0, 4
+	syscall
+	j	menu
+	
+recursiveMultiplication:
+	li	$t4, 0
+	la	$a0, mulInput
+	li	$v0, 4
+	syscall
+	
+	li	$v0,5
+	syscall
+	
+	move	$t1, $v0		#first no
+	
+	li	$v0,5
+	syscall
+	
+	move	$t2, $v0		#second no
+	
+	jal	multiplication
+	
+	la	$a0, resultMsg
+	li	$v0, 4
+	syscall
+	
+	move	$a0, $t4
+	li	$v0, 1
+	syscall
+	j menu
+multiplication:
+	addi	$sp, $sp, -8
+	sw	$t1, 4($sp)
+	sw	$ra, 0($sp)		#save ra on the stack
+	bgt	$t2, $zero, else
+	
+	#base case
+	addi	$sp, $sp, 8
+	jr	$ra
+else:
+	addi	$t2, $t2, -1
+	jal	multiplication
+	lw	$ra, 0($sp)
+	lw	$t3, 4($sp)
+	addi	$sp, $sp, 8
+	add	$t4, $t4, $t3
+	jr	$ra
+	
+recursiveSummation:
+	li 	$t2, 0
+	la	$a0, sumMsg
+	li	$v0, 4
+	syscall
+	
+	li	$v0, 5
+	syscall
+	
+	move	$t1, $v0
+	jal	summation
+	
+	move	$a0, $t2
+	li 	$v0, 1
+	syscall
+	
+	j menu
+	#move	$t2, $t1
+summation:
+	addi	$sp, $sp, -8
+	sw	$t1, 4($sp)
+	sw	$ra, 0($sp)
+	bgt	$t1, $zero, else2
+	# base case:
+	addi	$t2, $t1, 0
+	add	$sp, $sp, 8
+	jr	$ra
+else2:
+	addi	$t1, $t1, -1
+	jal	summation
+	lw	$ra, 0($sp)
+	lw	$t1, 4($sp)
+	addi	$sp, $sp, 8
+	add	$t2, $t1, $t2
+	jr	$ra
+	
+#################################
+#				#
+#	data segment		#
+#				#
+#################################
+	  .data
+error:		.asciiz "\nError invalid option choose"
+endl:		.asciiz "\n"
+menuMsg:	.asciiz "\nEnter 1 to recursiveMultiplication \nEnter 2 to recursiveSummation \n"
+mulInput:	.asciiz "\nEnter 2 inputs to multiply\n" 
+resultMsg:	.asciiz "\nResult: "
+sumMsg:		.asciiz "Enter a n value to find summation until reaching that n value:\n" 
+
