@@ -1,0 +1,192 @@
+##
+##	I GOT HELP FROM PROF'S factorial.asm code in this assignment
+
+#################################
+#				#
+#	text segment		#
+#				#
+#################################
+	.text		
+	.globl __start
+ __start:
+ 	jal	menu			#jump and link to the menu option
+ 	
+ 	li	$v0,10			#exit option
+	syscall
+menu:
+	move	$s0, $ra
+	la	$a0, menuMsg		#print out the menu
+	li	$v0, 4
+	syscall
+	
+	li	$v0,5 
+	syscall
+	
+	blt	$v0, 1, errorMessage	#control selection input is proper or not
+	beq	$v0, 1, recursiveMultiplication	#if selection = 1 go to recursiveMultiplication
+	beq	$v0, 2, recursiveSummation	#if selection = 2 go to recursiveSummation
+	bgt	$v0, 2, errorMessage
+	move	$ra, $s0
+errorMessage:
+	la	$a0, error			#print error message
+	li	$v0, 4
+	syscall
+	j	menu
+	
+recursiveMultiplication:
+	li	$t4, 0
+	la	$a0, mulInput			#take inputs to multiply
+	li	$v0, 4
+	syscall
+	
+	li	$v0,5
+	syscall
+	
+	move	$t1, $v0			#first no
+	
+	li	$v0,5
+	syscall
+	
+	move	$t2, $v0			#second no
+	
+	jal	multiplication
+	
+	la	$a0, resultMsg
+	li	$v0, 4
+	syscall
+	
+	move	$a0, $t4			#return t4 as the result
+	li	$v0, 1
+	syscall
+	j menu
+##I GOT HELP FROM factorial.asm 
+multiplication:
+	addi	$sp, $sp, -8		#take 2 place of integers in stack
+	sw	$t1, 4($sp)		#save $t1 in stack
+	sw	$ra, 0($sp)		#save $ra on the stack
+	bgt	$t2, $zero, else
+	
+	#base case
+	addi	$sp, $sp, 8
+	jr	$ra
+else:
+	addi	$t2, $t2, -1		#number of loop count -1 
+	jal	multiplication
+	lw	$ra, 0($sp)
+	lw	$t3, 4($sp)
+	addi	$sp, $sp, 8
+	add	$t4, $t4, $t3		#t4 = t4 + t3 do it until t2 != 0
+	jr	$ra
+	
+recursiveSummation:
+	li 	$t2, 0
+	la	$a0, sumMsg		#take user inputs to find summation
+	li	$v0, 4
+	syscall
+	
+	li	$v0, 5
+	syscall
+	
+	move	$t1, $v0
+	jal	summation
+	
+	move	$a0, $t2
+	li 	$v0, 1
+	syscall
+	
+	j menu
+	#move	$t2, $t1
+summation:
+	addi	$sp, $sp, -8		#allocate 2 place in stack
+	sw	$t1, 4($sp)		#save the n value in stack
+	sw	$ra, 0($sp)		#save ra
+	bgt	$t1, $zero, else2
+	# base case:
+	addi	$t2, $t1, 0		#its like moving t2 to t1
+	add	$sp, $sp, 8
+	jr	$ra
+else2:
+	addi	$t1, $t1, -1		#loop count is n value
+	jal	summation
+	lw	$ra, 0($sp)
+	lw	$t1, 4($sp)
+	addi	$sp, $sp, 8
+	add	$t2, $t1, $t2
+	jr	$ra
+	
+#################################
+#				#
+#	data segment		#
+#				#
+#################################
+	  .data
+error:		.asciiz "\nError invalid option choose"
+endl:		.asciiz "\n"
+menuMsg:	.asciiz "\nEnter 1 to recursiveMultiplication \nEnter 2 to recursiveSummation \n"
+mulInput:	.asciiz "\nEnter 2 inputs to multiply\n" 
+resultMsg:	.asciiz "\nResult: "
+sumMsg:		.asciiz "Enter a n value to find summation until reaching that n value:\n" 
+
+
+################	HERE WE LOST THE VALUE WHICH WE DELETED FROM THE LIST YET
+################	IF WE WANT TO SAVE IT ME MAY MOVE OUR ARRAY ADDRESS TO ANOTHER REGISTER TO PROTECT IT
+################	IT WILL BEHAVE LIKE A COPY OF OUR LIST, WE CAN SEE BOTH THE MODIFIED-DELETED LIST AND FIRST VERSION OF IT
+################	ANOTHER WAY, WE CAN PUT THE ADDRESS OF THE TO-BE-DELETED NODE TO ANOTHER REGISTER AND RETURN IT
+################	EITHER IN THIS WAY OR OTHER, WE CAN REACH THE DELETED VALUE &/OR ITS ADDRESS YET HERE, WE LOST IT
+################
+################
+
+Delete_x:
+	move	$t5, $a0
+	move	$t4, $a0
+	lw	$t2, 4($t4)
+	beq	$t2, $a1, deleteHead		#if we found the a1 in head go delete the head and it is a special case
+	
+	j	detectNode
+	
+	#li $v0, -1	##v0 == 1 NOT SUCCESSFUL
+
+	#move $v1, $a0	##POINTER THE HEAD OF LINKED LIST V1
+
+	#jr $ra
+	j end
+	nop
+
+
+deleteHead:
+	lw	$t2, 0($t4)			#take next nodes address and took it to t2
+	move	$t4, $t2			#replace the next value to the head value
+	move 	$a0, $t4
+	#li	$v0, 0
+	#move	$v1, $a0
+	#jr	$ra
+	j positive
+	
+detectNode:
+	lw	$t6, 0($t4)
+		
+	move	$t0, $t4			#prev
+	move	$t4, $t6			#cur
+	
+	lw	$t7, 4($t4)
+	beq	$t7, $a1, done
+	
+	bnez 	$t6, detectNode
+	j	end
+done:
+	lw	$t3, 0($t4)
+	sw	$t3, 0($t0)
+	#move	$t4, $t0
+	#move	$a0, $t4
+	j positive
+
+positive:
+	li	$v0, 0			#means that we executed our operation so v0 = 0
+	move	$v1, $a0
+	jr	$ra
+	
+end:
+	li	$v0, -1			#means that we could not executed our operation so v0 = 1
+	move	$v1, $a0
+	jr 	$ra
+

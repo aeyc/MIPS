@@ -1,0 +1,414 @@
+##
+## reversearr.asm - defines and array and prints its reverse
+##
+##	t1 array
+##	t4 arraySize
+##
+
+#################################
+#				#
+#		text segment	#
+#				#
+#################################
+  	.text
+	.globl __start	
+
+__start:
+
+	la $t1, array #define array
+	lw $t4, arraySize
+	la $a0, message
+	li $v0, 4
+	syscall
+
+	li $v0,5 #get number of the elements
+	syscall
+	
+	#store user desired no of elements
+	move $t4,$v0
+	move $t5,$t1 #array
+	move $t6,$t4 #size
+loop:
+	la $a0, elMsg
+	li $v0,4		# syscall 4 prints the string
+	syscall
+
+	li $v0, 5		# syscall 5 reads an integer
+	syscall
+		
+	sb $v0,0($t5)		#point first element of array
+	addi $t5,$t5,4		#next element
+	addi $t6,$t6,-1		#size -1
+	bgt $t6,$zero,loop
+
+	
+	la $a0,displayMsg	#"Array contents: "
+	li $v0,4
+	syscall
+	
+	move $t5,$t1
+	move $t6,$t4
+	
+display: #display array elements
+
+	lb $t7,0($t5)
+	move $a0, $t7
+	li $v0,1
+	syscall
+	
+	addi $t5,$t5,4
+	addi $t6,$t6,-1
+	bgt $t6, $zero,display
+	
+	la $a0,reverseMsg #Reverse version: "
+	li $v0,4
+	syscall
+	
+
+	
+	add $t5,$zero,$t1
+	add $t6,$zero,$t4
+	subi $t6, $t6,1
+	mul $t6,$t6,4
+	add $t6,$t1,$t6
+	
+reverse:
+	lw $t2,0($t5)
+	lw $t3,0($t6)
+	
+	sw $t2,0($t6)
+	sw $t3,0($t5)
+	
+	addi $t6, $t6,-4
+	addi $t5,$t5,4
+	
+	bgt $t6,$t5,reverse
+
+	move $t5,$t1
+	move $t6,$t4
+		
+displayReverse:
+
+	lb $t7,0($t5)
+	move $a0, $t7
+	li $v0,1
+	syscall
+	
+	addi $t5,$t5,4
+	addi $t6,$t6,-1
+	bgt $t6, $zero,displayReverse
+	
+
+	li $v0,10
+	syscall
+	
+#################################
+#				#
+#     	 data segment		#
+#				#
+#################################	
+	.data
+message: .asciiz "Enter the array size: "
+elMsg: .asciiz "Enter array element: "
+displayMsg: .asciiz "Array contents: "
+reverseMsg: .asciiz "Reverse version: "
+array: .space 80
+arraySize: .word 20 
+l: .word 0
+m: .word 4
+
+##
+## end of file reversearr.asm
+	
+
+
+
+##
+## xcd.asm - calculating given formula
+##
+##	t0 - c
+##	t1 - d
+##	t2 -  the value that printing
+##
+
+#################################
+#				#
+#		text segment    #
+#				#
+#################################
+	.text		
+	.globl __start	
+
+__start:
+	lw $t0, c #x= (c - d) % 2
+	lw $t1, d
+	sub $t2, $t0, $t1 #t3= c-d 
+	li $a1,2
+next:
+	blt $t2,$a1, remainder
+	addi $t2, $t2,-2
+	b next
+
+remainder: 
+	li $v0,1
+	move $a0,$t2
+	syscall
+	#stop execution
+	
+	li $v0,10
+	syscall
+#################################
+#				#
+#     	 data segment		#
+#				#
+#################################
+	.data
+c:	.word 20
+d:	.word 10
+x:	.word 0
+
+##
+## end of file Program1.asm
+
+
+
+
+##
+## Program1.asm - prints out "hello world"
+##
+##	a0 - points to the string
+##
+
+#################################
+#				#
+#		text segment	#
+#				#
+#################################
+
+	.text		
+	.globl __start 
+
+__start:		# execution starts here
+	la $a0,str	# put string address into a0
+	li $v0,4	# system call to print
+	syscall	#   out a string
+
+	li $v0,10  # system call to exit
+	syscall	#    bye bye
+
+
+#################################
+#				#
+#     	 data segment		#
+#				#
+#################################
+
+	.data
+str:	.asciiz "hello Alican \n"
+n:	.word	10
+
+##
+## end of file Program1.asm
+
+
+
+
+
+##
+## Program2.asm asks user for temperature in Celsius,
+##  converts to Fahrenheit, prints the result.
+##
+##	v0 - reads in Celsius
+##	t0 - holds Fahrenheit result
+##	a0 - points to output strings
+##
+
+#################################
+#					 	#
+#		text segment		#
+#						#
+#################################
+
+	.text		
+	.globl __start	
+
+__start:
+	la $a0,prompt	# output prompt message on terminal
+	li $v0,4		# syscall 4 prints the string
+	syscall
+
+	li $v0, 5		# syscall 5 reads an integer
+	syscall
+
+	mul $t0,$v0,9	# to convert,multiply by 9,
+	div $t0,$t0,5	# divide by 5, then
+	add $t0,$t0,32	# add 32
+
+	la $a0,ans1	# print string before result
+	li $v0,4
+	syscall
+
+	move $a0,$t0	# print integer result
+	li $v0,1		# using syscall 1
+	syscall
+
+	la $a0,endl	# system call to print
+	li $v0,4		# out a newline
+	syscall
+
+	li $v0,10		# system call to exit
+	syscall		#    bye bye
+
+
+#################################
+#					 	#
+#     	 data segment		#
+#						#
+#################################
+
+	.data
+prompt:	.asciiz "Enter temperature (Celsius): "
+ans1:		.asciiz "The temperature in Fahrenheit is "
+endl:		.asciiz "\n"
+
+##
+## end of file Program2.asm
+
+
+
+
+
+##
+##	Program3.asm is a loop implementation
+##	of the Fibonacci function
+##        
+
+#################################
+#				#
+#		text segment	#
+#				#
+#################################
+
+	.text		
+	.globl __start
+ 
+__start:			# execution starts here
+	li $a0,7		# to calculate fib(7)
+	jal fib		# call fib
+	move $a0,$v0	# print result
+	li $v0, 1
+	syscall
+
+	la $a0,endl		# print newline
+	li $v0,4
+	syscall
+
+	li $v0,10
+	syscall		# bye bye
+
+#------------------------------------------------
+
+
+fib:	move $v0,$a0	# initialise last element
+	blt $a0,2,done	# fib(0)=0, fib(1)=1
+
+	li $t0,0		# second last element
+	li $v0,1		# last element
+
+loop:	add $t1,$t0,$v0	# get next value
+	move $t0,$v0	# update second last
+	move $v0,$t1	# update last element
+	sub $a0,$a0,1	# decrement count
+	bgt $a0,1,loop	# exit loop when count=0
+done:	jr $ra
+
+#################################
+#				#
+#     	 data segment		#
+#				#
+#################################
+
+	.data
+endl:	.asciiz "\n"
+
+##
+## end of Program3.asm
+
+
+
+
+
+
+##
+## part4.asm - prints out the result of given formula
+##     [(a-7b)*3 +2] %4
+##	t0 - a
+##	t1 - b
+
+#################################
+#				#
+#		text segment	#
+#				#
+#################################
+
+	.text		
+	.globl __start	
+
+__start:
+	#read first input
+	la $a0, getInput1 	
+	li $v0,4		
+	syscall
+
+	li $v0, 5		
+	syscall
+	
+	sw $v0,a #a
+	lw $t0, a		#store a in $t0
+	
+	#read second input
+	la $a0, getInput2
+	li $v0,4		
+	syscall
+
+	li $v0, 5
+	syscall
+	
+	sw $v0,c #b
+	lw $t1, c		#store b in $t1
+	
+	mul $t1, $t1,7		#b*7
+	
+	sub $t2, $t0, $t1	#t2 = a - 7b
+	
+	mul $t2, $t2, 3		#t2 = 3*t2 = 3*(a - 7b)
+	
+	addi $t2, $t2, 2	#t2 = 2+t2=3*(a - 7b)+2
+	
+	blt $t2, 0, negativeDiv		#if [(a-7b)*3 +2] is negative go negativeDiv
+	li $a2, 4
+divide: 
+	blt $t2, $a2, remainder #if a1 < a2 go remainder - (a-7b) * 3 + 2 > 4
+	addi $t2,$t2, -4	#do division with subtraction
+	b divide
+
+negativeDiv:			#if [(a-7b)*3 +2] is negative 
+	bgt $t2, 0, remainder
+	addi $t2, $t2, 4
+	b negativeDiv
+	
+remainder:
+	li $v0, 1
+	move $a0, $t2	#print remainder
+	syscall
+	
+	li $v0, 10
+	syscall
+	
+	.data
+getInput1:	.asciiz "Enter first input: \n"
+getInput2:	.asciiz "Enter second input: \n"
+a: .word 10
+c: .word 1
+##
+## end of part4.asm
